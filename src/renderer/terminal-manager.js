@@ -11,6 +11,7 @@ class TerminalManager {
     this.emptyState = document.getElementById('empty-state');
     this.gridEmptyState = document.getElementById('grid-empty-state');
     this.activityCallbacks = [];
+    this.renameCallbacks = [];
     this.idleTimeout = 3000; // 3 seconds of no output = idle
     this.isGridView = false;
 
@@ -31,6 +32,21 @@ class TerminalManager {
    */
   notifyActivity(id, isActive) {
     this.activityCallbacks.forEach(cb => cb(id, isActive));
+  }
+
+  /**
+   * Register a callback for rename events
+   * @param {function} callback - Called with (id, newName)
+   */
+  onRename(callback) {
+    this.renameCallbacks.push(callback);
+  }
+
+  /**
+   * Notify all rename callbacks
+   */
+  notifyRename(id, newName) {
+    this.renameCallbacks.forEach(cb => cb(id, newName));
   }
 
   /**
@@ -91,8 +107,34 @@ class TerminalManager {
       }, 50);
     });
 
+    // Track input buffer for /rename command
+    let inputBuffer = '';
+    let renameHandled = false; // Prevent repeated rename on subsequent Enters
+
     // Handle user input
     terminal.onData((data) => {
+      const renameUtils = window.RenameUtils;
+      if (renameUtils && typeof renameUtils.getRenameAction === 'function') {
+        const { shouldRename, newName, nextBuffer, nextHandled } = renameUtils.getRenameAction(
+          inputBuffer,
+          data,
+          renameHandled
+        );
+
+        inputBuffer = nextBuffer;
+        renameHandled = nextHandled;
+
+        if (shouldRename && newName) {
+          // Clear the line (move to start, clear line) then show message
+          terminal.write('\r\x1b[K\x1b[33m[Admin] Renamed window to ' + newName + '.\x1b[0m\r\n');
+          // Kill the buffered shell line and abort any pending input
+          window.terminalAPI.write(id, '\u0003'); // Ctrl+C
+          this.notifyRename(id, newName);
+          window.terminalAPI.write(id, '\r');
+          return;
+        }
+      }
+
       window.terminalAPI.write(id, data);
     });
 
@@ -392,6 +434,21 @@ class TerminalManager {
       const statusEl = entry.gridEl.querySelector('.grid-terminal-status');
       if (statusEl) {
         statusEl.dataset.status = isActive ? 'active' : 'idle';
+      }
+    }
+  }
+
+  /**
+   * Update terminal name in grid view
+   * @param {string} id - Terminal ID
+   * @param {string} newName - New name
+   */
+  updateGridName(id, newName) {
+    const entry = this.terminals.get(id);
+    if (entry && entry.gridEl) {
+      const nameEl = entry.gridEl.querySelector('.grid-terminal-name');
+      if (nameEl) {
+        nameEl.textContent = newName;
       }
     }
   }

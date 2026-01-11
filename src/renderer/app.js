@@ -11,6 +11,7 @@ class App {
       onSelect: (id) => this.selectTerminal(id),
       onClose: (id) => this.closeTerminal(id),
       onCreate: () => this.createTerminal(),
+      onRename: (id, newName) => this.renameTerminal(id, newName),
     });
 
     this.viewToggleBtn = document.getElementById('view-toggle-btn');
@@ -18,6 +19,7 @@ class App {
 
     this.setupExitHandler();
     this.setupActivityHandler();
+    this.setupRenameHandler();
     this.setupViewToggle();
     this.setupGridEvents();
 
@@ -100,6 +102,25 @@ class App {
       this.sidebar.setActivity(id, isActive);
       this.terminalManager.updateGridActivity(id, isActive);
     });
+  }
+
+  /**
+   * Handle /rename command from terminal
+   */
+  setupRenameHandler() {
+    this.terminalManager.onRename((id, newName) => {
+      this.renameTerminal(id, newName);
+    });
+  }
+
+  /**
+   * Rename a terminal
+   * @param {string} id - Terminal ID
+   * @param {string} newName - New name
+   */
+  renameTerminal(id, newName) {
+    this.sidebar.rename(id, newName);
+    this.terminalManager.updateGridName(id, newName);
   }
 
   /**

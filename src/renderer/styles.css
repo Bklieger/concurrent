@@ -216,6 +216,21 @@ body::before {
   text-overflow: ellipsis;
   text-transform: uppercase;
   letter-spacing: 1px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.terminal-item-name-input {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 1px 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  outline: none;
 }
 
 .terminal-item-close {
