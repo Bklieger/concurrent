@@ -179,7 +179,7 @@ class Sidebar {
    * @param {string} id - Terminal ID
    * @param {string} newName - New name for the terminal
    */
-  rename(id, newName) {
+  rename(id, newName, { emit = true } = {}) {
     const entry = this.terminals.get(id);
     if (!entry) return;
 
@@ -188,7 +188,7 @@ class Sidebar {
     nameEl.textContent = newName;
 
     // Notify callback if set
-    if (this.onRename) {
+    if (emit && this.onRename) {
       this.onRename(id, newName);
     }
   }
@@ -241,3 +241,12 @@ class Sidebar {
   }
 }
 
+
+// Export for tests and attach to window when available
+if (typeof module !== 'undefined') {
+  module.exports = Sidebar;
+}
+
+if (typeof window !== 'undefined') {
+  window.Sidebar = Sidebar;
+}

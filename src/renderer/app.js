@@ -119,7 +119,7 @@ class App {
    * @param {string} newName - New name
    */
   renameTerminal(id, newName) {
-    this.sidebar.rename(id, newName);
+    this.sidebar.rename(id, newName, { emit: false });
     this.terminalManager.updateGridName(id, newName);
   }
 
