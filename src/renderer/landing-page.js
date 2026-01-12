@@ -9,28 +9,17 @@ class LandingPage {
     this.worktrees = [];
     this.pollInterval = null;
 
-    this.container = document.getElementById('landing-container');
-    this.tableBody = document.getElementById('worktree-table-body');
-    this.launchBtn = document.getElementById('landing-launch-btn');
-    this.refreshBtn = document.getElementById('landing-refresh-btn');
-    this.emptyState = document.getElementById('landing-empty-state');
-    this.tableWrapper = document.getElementById('worktree-table-wrapper');
-
-    this.setupEventListeners();
+    // These will be set later when mounted in a window
+    this.tableBody = null;
+    this.launchBtn = null;
+    this.refreshBtn = null;
+    this.emptyState = null;
+    this.tableWrapper = null;
   }
 
-  setupEventListeners() {
-    // Launch new agent button
-    this.launchBtn.addEventListener('click', () => {
-      this.onLaunchNew();
-    });
+  setupTableClickHandler() {
+    if (!this.tableBody) return;
 
-    // Refresh button
-    this.refreshBtn.addEventListener('click', () => {
-      this.refresh();
-    });
-
-    // Table row clicks
     this.tableBody.addEventListener('click', (e) => {
       const row = e.target.closest('.worktree-row');
       if (!row) return;
@@ -53,27 +42,10 @@ class LandingPage {
   }
 
   /**
-   * Show the landing page
-   */
-  show() {
-    this.container.classList.remove('hidden');
-    this.refresh();
-    this.startPolling();
-  }
-
-  /**
-   * Hide the landing page
-   */
-  hide() {
-    this.container.classList.add('hidden');
-    this.stopPolling();
-  }
-
-  /**
-   * Check if landing page is visible
+   * Check if landing page is visible (always true when mounted)
    */
   isVisible() {
-    return !this.container.classList.contains('hidden');
+    return this.tableBody !== null;
   }
 
   /**

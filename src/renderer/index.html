@@ -17,8 +17,7 @@
       <div class="sidebar-header">
         <h1>CONCURRENT</h1>
         <div class="sidebar-header-btns">
-          <button id="landing-toggle-btn" title="View All Worktrees">[≡]</button>
-          <button id="view-toggle-btn" title="Toggle Grid View">[#]</button>
+          <button id="overview-toggle-btn" title="Toggle Overview Window">[≡]</button>
           <button id="new-terminal-btn" title="New Terminal">[+]</button>
         </div>
       </div>
@@ -28,13 +27,23 @@
       </button>
     </aside>
 
-    <!-- Landing Page - Worktree Table View -->
-    <main id="landing-container" class="hidden">
+    <!-- Window Grid Container - 8x8 grid for draggable windows -->
+    <main id="window-grid-container">
+      <div id="grid-overlay"></div>
+      <div id="empty-state">
+        <p>NO ACTIVE WINDOWS</p>
+        <button id="empty-state-launch-btn">[+] LAUNCH AGENT</button>
+        <button id="empty-state-overview-btn">[≡] OPEN OVERVIEW</button>
+      </div>
+    </main>
+
+    <!-- Hidden template containers for window content -->
+    <div id="overview-content-template" class="hidden">
       <div class="landing-header">
-        <h2>WORKTREE COMMAND CENTER</h2>
+        <h2>AGENT COMMAND CENTER</h2>
         <div class="landing-header-btns">
           <button id="landing-refresh-btn" class="landing-btn">[↻] REFRESH</button>
-          <button id="landing-launch-btn" class="landing-btn landing-btn-primary">[+] LAUNCH NEW AGENT</button>
+          <button id="landing-launch-btn" class="landing-btn landing-btn-primary">[+] LAUNCH</button>
         </div>
       </div>
       <div id="landing-empty-state" class="hidden">
@@ -60,20 +69,7 @@
           </tbody>
         </table>
       </div>
-    </main>
-
-    <main id="terminal-container">
-      <div id="empty-state">
-        <p>NO ACTIVE AGENTS</p>
-        <button id="empty-state-launch-btn">[+] LAUNCH</button>
-      </div>
-    </main>
-    <main id="grid-container" class="hidden">
-      <div id="grid-empty-state">
-        <p>NO ACTIVE AGENTS</p>
-        <button id="grid-create-btn">[+] LAUNCH</button>
-      </div>
-    </main>
+    </div>
   </div>
   <!-- Load xterm via script tags (works without bundler) -->
   <script src="../../node_modules/xterm/lib/xterm.js"></script>
@@ -84,6 +80,7 @@
   <script src="presets.js"></script>
   <script src="launch-modal.js"></script>
   <script src="landing-page.js"></script>
+  <script src="window-manager.js"></script>
   <script src="app.js"></script>
 </body>
 
