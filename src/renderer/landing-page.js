@@ -212,3 +212,8 @@ if (typeof window !== 'undefined') {
   window.LandingPage = LandingPage;
 }
 
+// Export for tests
+if (typeof module !== 'undefined') {
+  module.exports = LandingPage;
+}
+

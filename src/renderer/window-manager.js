@@ -765,3 +765,8 @@ class WindowManager {
 if (typeof window !== 'undefined') {
     window.WindowManager = WindowManager;
 }
+
+// Export for tests
+if (typeof module !== 'undefined') {
+    module.exports = WindowManager;
+}

@@ -389,8 +389,52 @@ class App {
       this.overviewToggleBtn.classList.remove('active');
       this.landingPage.stopPolling();
     } else if (windowData.type === 'terminal' && windowData.terminalId) {
-      // Just remove the window mapping, don't close the terminal
-      this.terminalToWindow.delete(windowData.terminalId);
+      // Close the terminal completely (removes from sidebar too)
+      this.closeTerminalFromWindow(windowData.terminalId);
+    }
+  }
+
+  /**
+   * Close terminal triggered by window close (avoids double-closing window)
+   */
+  async closeTerminalFromWindow(id) {
+    try {
+      // Clear status poller
+      if (this.statusPollers && this.statusPollers.has(id)) {
+        clearInterval(this.statusPollers.get(id));
+        this.statusPollers.delete(id);
+      }
+
+      // Remove from worktree mapping
+      for (const [path, terminalId] of this.worktreeToTerminal.entries()) {
+        if (terminalId === id) {
+          this.worktreeToTerminal.delete(path);
+          break;
+        }
+      }
+
+      // Remove window mapping (window already closed by window manager)
+      this.terminalToWindow.delete(id);
+
+      // Update landing page
+      this.landingPage.updateStatus();
+
+      // Find next terminal
+      const nextId = this.sidebar.getNextId(id);
+
+      // Close PTY
+      await window.terminalAPI.close(id);
+
+      // Clean up UI
+      this.sidebar.remove(id);
+      this.terminalManager.close(id);
+
+      // Select next terminal
+      if (nextId) {
+        this.selectTerminal(nextId);
+      }
+    } catch (err) {
+      console.error('Failed to close terminal:', err);
     }
   }
 
@@ -539,3 +583,8 @@ class App {
 document.addEventListener('DOMContentLoaded', () => {
   new App();
 });
+
+// Export for tests
+if (typeof module !== 'undefined') {
+  module.exports = App;
+}

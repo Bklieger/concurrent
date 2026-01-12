@@ -27,8 +27,8 @@ describe('Sidebar', () => {
         const name1 = sidebar.add('id-1');
         const name2 = sidebar.add('id-2');
 
-        expect(name1).toBe('TTY-01');
-        expect(name2).toBe('TTY-02');
+        expect(name1).toBe('AGNT-01');
+        expect(name2).toBe('AGNT-02');
         expect(sidebar.terminals.size).toBe(2);
         expect(document.querySelectorAll('.terminal-item').length).toBe(2);
     });
@@ -84,11 +84,10 @@ describe('Sidebar', () => {
         expect(sidebar.getNextId('id-3')).toBe('id-2');
     });
 
-    test('new/create buttons trigger onCreate', () => {
+    test('new terminal button triggers onCreate', () => {
         document.getElementById('new-terminal-btn').click();
-        document.getElementById('create-first-btn').click();
 
-        expect(callbacks.onCreate).toHaveBeenCalledTimes(2);
+        expect(callbacks.onCreate).toHaveBeenCalledTimes(1);
     });
 
     test('clicking item triggers onSelect and close triggers onClose', () => {

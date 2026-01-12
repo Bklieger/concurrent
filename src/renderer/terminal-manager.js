@@ -218,3 +218,8 @@ class TerminalManager {
     return this.terminals.size;
   }
 }
+
+// Export for tests
+if (typeof module !== 'undefined') {
+  module.exports = TerminalManager;
+}

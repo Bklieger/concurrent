@@ -64,3 +64,8 @@ class PresetManager {
     return this.presets.length;
   }
 }
+
+// Export for tests
+if (typeof module !== 'undefined') {
+  module.exports = PresetManager;
+}
