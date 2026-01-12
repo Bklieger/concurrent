@@ -1,7 +1,7 @@
 /**
  * Main application controller
  * Coordinates between TerminalManager and Sidebar
- * Depends on: TerminalManager, Sidebar, PresetManager, LaunchModal (loaded via script tags)
+ * Depends on: TerminalManager, Sidebar, PresetManager, LaunchModal, LandingPage (loaded via script tags)
  */
 class App {
   constructor() {
@@ -20,9 +20,20 @@ class App {
       this.presetManager
     );
 
+    // Landing page for viewing all worktrees
+    this.landingPage = new LandingPage({
+      onSelectWorktree: (worktree) => this.handleWorktreeSelect(worktree),
+      onLaunchNew: () => this.launchModal.show(),
+      getActiveWorktrees: () => this.getActiveWorktreePaths(),
+    });
+
+    // Track worktree paths to terminal IDs
+    this.worktreeToTerminal = new Map();
+
     this.viewToggleBtn = document.getElementById('view-toggle-btn');
     this.gridCreateBtn = document.getElementById('grid-create-btn');
     this.launchAgentBtn = document.getElementById('launch-agent-btn');
+    this.landingToggleBtn = document.getElementById('landing-toggle-btn');
 
     this.setupExitHandler();
     this.setupActivityHandler();
@@ -31,8 +42,11 @@ class App {
     this.setupGridEvents();
     this.setupLaunchButton();
     this.setupEmptyStateLaunch();
+    this.setupLandingToggle();
+    this.setupLandingEmptyLaunch();
 
-    // Don't create terminal on startup - let user launch agents instead
+    // Show landing page by default
+    this.showLandingPage();
   }
 
   /**
@@ -67,31 +81,6 @@ class App {
   }
 
   /**
-   * Close a terminal
-   * @param {string} id - Terminal ID
-   */
-  async closeTerminal(id) {
-    try {
-      // Find next terminal to select before closing
-      const nextId = this.sidebar.getNextId(id);
-
-      // Close PTY in main process
-      await window.terminalAPI.close(id);
-
-      // Clean up UI
-      this.sidebar.remove(id);
-      this.terminalManager.close(id);
-
-      // Select next terminal if available
-      if (nextId) {
-        this.selectTerminal(nextId);
-      }
-    } catch (err) {
-      console.error('Failed to close terminal:', err);
-    }
-  }
-
-  /**
    * Handle terminal exit events from main process
    */
   setupExitHandler() {
@@ -109,7 +98,24 @@ class App {
     this.terminalManager.onActivity((id, isActive) => {
       this.sidebar.setActivity(id, isActive);
       this.terminalManager.updateGridActivity(id, isActive);
+      // Update landing page when activity changes
+      this.landingPage.updateStatus();
     });
+  }
+
+  /**
+   * Get worktree paths that have active (green dot) terminals
+   * @returns {Set<string>} Set of worktree paths with active terminals
+   */
+  getActiveWorktreePaths() {
+    const activePaths = new Set();
+    for (const [path, terminalId] of this.worktreeToTerminal.entries()) {
+      const terminalEntry = this.terminalManager.terminals.get(terminalId);
+      if (terminalEntry && terminalEntry.isActive) {
+        activePaths.add(path);
+      }
+    }
+    return activePaths;
   }
 
   /**
@@ -226,6 +232,132 @@ class App {
   }
 
   /**
+   * Setup landing page toggle button
+   */
+  setupLandingToggle() {
+    this.landingToggleBtn.addEventListener('click', () => {
+      if (this.landingPage.isVisible()) {
+        this.hideLandingPage();
+      } else {
+        this.showLandingPage();
+      }
+    });
+
+    // Keyboard shortcut: Ctrl/Cmd + H for landing page
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+        e.preventDefault();
+        this.landingToggleBtn.click();
+      }
+    });
+  }
+
+  /**
+   * Setup landing empty state launch button
+   */
+  setupLandingEmptyLaunch() {
+    const landingEmptyBtn = document.getElementById('landing-empty-launch-btn');
+    if (landingEmptyBtn) {
+      landingEmptyBtn.addEventListener('click', () => {
+        this.launchModal.show();
+      });
+    }
+  }
+
+  /**
+   * Show the landing page
+   */
+  showLandingPage() {
+    this.landingPage.show();
+    this.landingToggleBtn.classList.add('active');
+
+    // Hide terminal/grid views
+    document.getElementById('terminal-container').classList.add('hidden');
+    document.getElementById('grid-container').classList.add('hidden');
+  }
+
+  /**
+   * Hide the landing page
+   */
+  hideLandingPage() {
+    this.landingPage.hide();
+    this.landingToggleBtn.classList.remove('active');
+
+    // Show appropriate terminal view
+    const terminalContainer = document.getElementById('terminal-container');
+    const gridContainer = document.getElementById('grid-container');
+
+    if (this.viewToggleBtn.classList.contains('active')) {
+      terminalContainer.classList.add('hidden');
+      gridContainer.classList.remove('hidden');
+    } else {
+      terminalContainer.classList.remove('hidden');
+      gridContainer.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Handle worktree selection from landing page
+   * @param {Object} worktree - Worktree object with metadata
+   */
+  async handleWorktreeSelect(worktree) {
+    // Check if we already have a terminal for this worktree
+    const existingTerminalId = this.worktreeToTerminal.get(worktree.path);
+
+    if (existingTerminalId && this.sidebar.terminals.has(existingTerminalId)) {
+      // Terminal exists, select it
+      this.hideLandingPage();
+      this.selectTerminal(existingTerminalId);
+      return;
+    }
+
+    // Create new terminal for this worktree
+    await this.launchWorktreeTerminal(worktree);
+  }
+
+  /**
+   * Launch a terminal for an existing worktree
+   * @param {Object} worktree - Worktree object
+   */
+  async launchWorktreeTerminal(worktree) {
+    try {
+      // Show launch modal pre-filled for this worktree
+      // For now, just create a terminal in the worktree directory
+      const terminalId = await window.terminalAPI.create({
+        cwd: worktree.path,
+      });
+
+      // Store mapping
+      this.worktreeToTerminal.set(worktree.path, terminalId);
+
+      // Update landing page status
+      this.landingPage.updateStatus();
+
+      // Add to UI
+      const terminalName = `${worktree.owner}/${worktree.repo}:${worktree.branch}`;
+      const worktreeInfo = {
+        owner: worktree.owner,
+        repo: worktree.repo,
+        branch: worktree.branch,
+        path: worktree.path
+      };
+
+      this.terminalManager.create(terminalId);
+      this.sidebar.add(terminalId, terminalName, worktreeInfo);
+
+      // Start status polling
+      this.startWorktreeStatusPolling(terminalId, worktree.path);
+
+      // Hide landing page and select new terminal
+      this.hideLandingPage();
+      this.selectTerminal(terminalId);
+    } catch (error) {
+      console.error('Failed to launch worktree terminal:', error);
+      alert(`Failed to open worktree: ${error.message}`);
+    }
+  }
+
+  /**
    * Handle launch agent form submission
    * @param {Object} formData - Form data from launch modal
    */
@@ -265,16 +397,25 @@ class App {
         path: worktreeResult.path
       };
 
-      // 6. Add to UI with custom name and worktree info
+      // 6. Store worktree -> terminal mapping
+      this.worktreeToTerminal.set(worktreeResult.path, terminalId);
+
+      // Update landing page status
+      this.landingPage.updateStatus();
+
+      // 7. Add to UI with custom name and worktree info
       const terminalName = `${owner}/${repo}:${branch}`;
       this.terminalManager.create(terminalId);
       this.sidebar.add(terminalId, terminalName, worktreeInfo);
+
+      // 8. Hide landing page if visible and select terminal
+      this.hideLandingPage();
       this.selectTerminal(terminalId);
 
-      // 7. Start status polling for this worktree
+      // 9. Start status polling for this worktree
       this.startWorktreeStatusPolling(terminalId, worktreeResult.path);
 
-      // 8. Hide modal
+      // 10. Hide modal
       this.launchModal.hide();
     } catch (error) {
       console.error('Failed to launch agent:', error);
@@ -325,6 +466,17 @@ class App {
         clearInterval(this.statusPollers.get(id));
         this.statusPollers.delete(id);
       }
+
+      // Remove from worktree mapping
+      for (const [path, terminalId] of this.worktreeToTerminal.entries()) {
+        if (terminalId === id) {
+          this.worktreeToTerminal.delete(path);
+          break;
+        }
+      }
+
+      // Update landing page status
+      this.landingPage.updateStatus();
 
       // Find next terminal to select before closing
       const nextId = this.sidebar.getNextId(id);

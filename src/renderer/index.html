@@ -17,6 +17,7 @@
       <div class="sidebar-header">
         <h1>CONCURRENT</h1>
         <div class="sidebar-header-btns">
+          <button id="landing-toggle-btn" title="View All Worktrees">[≡]</button>
           <button id="view-toggle-btn" title="Toggle Grid View">[#]</button>
           <button id="new-terminal-btn" title="New Terminal">[+]</button>
         </div>
@@ -26,6 +27,41 @@
         LAUNCH NEW AGENT
       </button>
     </aside>
+
+    <!-- Landing Page - Worktree Table View -->
+    <main id="landing-container" class="hidden">
+      <div class="landing-header">
+        <h2>WORKTREE COMMAND CENTER</h2>
+        <div class="landing-header-btns">
+          <button id="landing-refresh-btn" class="landing-btn">[↻] REFRESH</button>
+          <button id="landing-launch-btn" class="landing-btn landing-btn-primary">[+] LAUNCH NEW AGENT</button>
+        </div>
+      </div>
+      <div id="landing-empty-state" class="hidden">
+        <div class="landing-empty-box">
+          <p>NO WORKTREES FOUND</p>
+          <span class="landing-empty-hint">Launch a new agent to create your first worktree</span>
+          <button id="landing-empty-launch-btn" class="landing-btn landing-btn-primary">[+] LAUNCH AGENT</button>
+        </div>
+      </div>
+      <div id="worktree-table-wrapper">
+        <table class="worktree-table">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th>BRANCH</th>
+              <th>CHANGES</th>
+              <th>STATUS</th>
+              <th>LAST COMMIT</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="worktree-table-body">
+          </tbody>
+        </table>
+      </div>
+    </main>
+
     <main id="terminal-container">
       <div id="empty-state">
         <p>NO ACTIVE AGENTS</p>
@@ -47,6 +83,7 @@
   <script src="terminal-manager.js"></script>
   <script src="presets.js"></script>
   <script src="launch-modal.js"></script>
+  <script src="landing-page.js"></script>
   <script src="app.js"></script>
 </body>
 

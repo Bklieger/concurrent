@@ -117,6 +117,26 @@ class Application {
         return { success: false, error: error.message };
       }
     });
+
+    // List all worktrees across all repos in ~/.concurrent
+    ipcMain.handle('git:list-all-worktrees', async () => {
+      try {
+        const worktrees = await this.gitManager.listAllWorktrees();
+        return { success: true, worktrees };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
+
+    // Safely remove a worktree (only inside ~/.concurrent)
+    ipcMain.handle('git:safe-remove-worktree', async (event, { worktreePath }) => {
+      try {
+        await this.gitManager.safeRemoveWorktree(worktreePath);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
   }
 
   init() {

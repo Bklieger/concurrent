@@ -55,5 +55,13 @@ contextBridge.exposeInMainWorld('gitAPI', {
   // Get worktree git status
   getWorktreeStatus: (worktreePath) =>
     ipcRenderer.invoke('git:get-worktree-status', { worktreePath }),
+
+  // List all worktrees across all repos in ~/.concurrent
+  listAllWorktrees: () =>
+    ipcRenderer.invoke('git:list-all-worktrees'),
+
+  // Safely remove a worktree (only inside ~/.concurrent)
+  safeRemoveWorktree: (worktreePath) =>
+    ipcRenderer.invoke('git:safe-remove-worktree', { worktreePath }),
 });
 

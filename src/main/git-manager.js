@@ -11,6 +11,172 @@ class GitManager {
     this.concurrentDir = path.join(os.homedir(), '.concurrent');
   }
 
+  /**
+   * Check if a path is safely inside ~/.concurrent
+   * @param {string} targetPath - Path to check
+   * @returns {boolean} True if path is inside ~/.concurrent
+   */
+  isInsideConcurrentDir(targetPath) {
+    const resolved = path.resolve(targetPath);
+    const concurrentResolved = path.resolve(this.concurrentDir);
+    return resolved.startsWith(concurrentResolved + path.sep) || resolved === concurrentResolved;
+  }
+
+  /**
+   * List all worktrees across all repos in ~/.concurrent
+   * @returns {Promise<Array>} Array of worktree objects with metadata
+   */
+  async listAllWorktrees() {
+    await this.ensureConcurrentDir();
+    const worktrees = [];
+
+    try {
+      // Read all owner directories
+      const owners = await fs.readdir(this.concurrentDir).catch(() => []);
+
+      for (const owner of owners) {
+        const ownerPath = path.join(this.concurrentDir, owner);
+        const ownerStat = await fs.stat(ownerPath).catch(() => null);
+
+        if (!ownerStat || !ownerStat.isDirectory()) continue;
+
+        // Read all repo directories within owner
+        const repos = await fs.readdir(ownerPath).catch(() => []);
+
+        for (const repo of repos) {
+          const repoPath = path.join(ownerPath, repo);
+          const repoStat = await fs.stat(repoPath).catch(() => null);
+
+          if (!repoStat || !repoStat.isDirectory()) continue;
+
+          // Check if this is a git repo
+          const gitPath = path.join(repoPath, '.git');
+          const isGitRepo = await fs.stat(gitPath).catch(() => null);
+
+          if (!isGitRepo) continue;
+
+          // Get worktrees for this repo
+          try {
+            const repoWorktrees = await this.listWorktrees(repoPath);
+
+            for (const wt of repoWorktrees) {
+              // Get additional metadata for each worktree
+              const status = await this.getWorktreeStatus(wt.path);
+              const lastCommit = await this.getLastCommit(wt.path);
+              const branchName = wt.branch ? wt.branch.replace('refs/heads/', '') : path.basename(wt.path);
+
+              worktrees.push({
+                path: wt.path,
+                owner,
+                repo,
+                branch: branchName,
+                isMain: wt.path === repoPath,
+                changes: status,
+                lastCommit,
+              });
+            }
+          } catch (error) {
+            console.error(`Failed to list worktrees for ${repoPath}:`, error.message);
+          }
+        }
+      }
+
+      return worktrees;
+    } catch (error) {
+      console.error('Failed to list all worktrees:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get the last commit info for a worktree
+   * @param {string} worktreePath - Path to worktree
+   * @returns {Promise<Object>} Last commit info
+   */
+  async getLastCommit(worktreePath) {
+    try {
+      const { stdout } = await execAsync(
+        'git log -1 --format="%H|%s|%cr|%an"',
+        { cwd: worktreePath }
+      );
+
+      const [hash, message, relativeTime, author] = stdout.trim().split('|');
+
+      return {
+        hash: hash ? hash.substring(0, 7) : '',
+        message: message || '',
+        relativeTime: relativeTime || '',
+        author: author || '',
+      };
+    } catch (error) {
+      return { hash: '', message: '', relativeTime: '', author: '' };
+    }
+  }
+
+  /**
+   * Safely remove a worktree (only if inside ~/.concurrent)
+   * @param {string} worktreePath - Path to worktree
+   * @returns {Promise<boolean>} Success
+   */
+  async safeRemoveWorktree(worktreePath) {
+    // Security check: Only allow deletion inside ~/.concurrent
+    if (!this.isInsideConcurrentDir(worktreePath)) {
+      throw new Error('Cannot delete worktree: Path is outside ~/.concurrent directory');
+    }
+
+    await this.checkGitInstalled();
+
+    // Find the parent git repo for this worktree
+    const parentRepoPath = await this.findParentRepo(worktreePath);
+
+    if (!parentRepoPath) {
+      // If no parent repo, just remove the directory
+      await fs.rm(worktreePath, { recursive: true, force: true });
+      return true;
+    }
+
+    try {
+      // Use git worktree remove from the parent repo
+      await execAsync(
+        `git worktree remove "${worktreePath}" --force`,
+        { cwd: parentRepoPath }
+      );
+      return true;
+    } catch (error) {
+      // If git command fails, try to prune and remove manually
+      try {
+        await execAsync('git worktree prune', { cwd: parentRepoPath });
+        await fs.rm(worktreePath, { recursive: true, force: true });
+        return true;
+      } catch (rmError) {
+        throw new Error(`Failed to remove worktree: ${rmError.message}`);
+      }
+    }
+  }
+
+  /**
+   * Find the parent repo for a worktree path
+   * @param {string} worktreePath - Path to worktree
+   * @returns {Promise<string|null>} Parent repo path or null
+   */
+  async findParentRepo(worktreePath) {
+    try {
+      const { stdout } = await execAsync(
+        'git rev-parse --git-common-dir',
+        { cwd: worktreePath }
+      );
+
+      const gitCommonDir = stdout.trim();
+      if (gitCommonDir && gitCommonDir !== '.git') {
+        // The common dir points to the main repo's .git folder
+        return path.dirname(gitCommonDir);
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
   async ensureConcurrentDir() {
     try {
       await fs.mkdir(this.concurrentDir, { recursive: true });

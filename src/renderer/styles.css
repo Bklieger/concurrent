@@ -96,10 +96,6 @@ body::before {
   text-transform: uppercase;
 }
 
-.sidebar-header h1::before {
-  content: '> ';
-  color: var(--text-secondary);
-}
 
 .sidebar-header-btns {
   display: flex;
@@ -245,7 +241,7 @@ body::before {
 
 .terminal-item-worktree {
   font-size: 9px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -885,4 +881,324 @@ body::before {
 
 .btn-secondary:active {
   border-color: var(--text-secondary);
+}
+
+/* === Landing Page === */
+#landing-container {
+  flex: 1;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.landing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-bright);
+}
+
+.landing-header h2 {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-primary);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+
+.landing-header-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.landing-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.landing-btn:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
+}
+
+.landing-btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-primary);
+}
+
+.landing-btn-primary:hover {
+  background: var(--accent-glow);
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 15px rgba(255, 149, 0, 0.5);
+}
+
+/* Landing page toggle button */
+#landing-toggle-btn {
+  padding: 2px 6px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+}
+
+#landing-toggle-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(255, 149, 0, 0.3);
+}
+
+#landing-toggle-btn.active {
+  background: var(--bg-active);
+  border-color: var(--accent);
+  color: var(--accent-glow);
+}
+
+/* Worktree Table */
+#worktree-table-wrapper {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.worktree-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.worktree-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary);
+  z-index: 10;
+}
+
+.worktree-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-bright);
+}
+
+.worktree-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.worktree-row {
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.worktree-row:hover {
+  background: var(--bg-hover);
+}
+
+.worktree-row:hover td {
+  border-bottom-color: var(--accent);
+}
+
+/* Worktree name cell */
+.worktree-name-main {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.worktree-name-sub {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+/* Branch column */
+.worktree-branch {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+/* Changes column */
+.worktree-changes {
+  font-size: 11px;
+}
+
+.worktree-changes .status-add {
+  color: #00ff00;
+  text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+  margin-right: 6px;
+}
+
+.worktree-changes .status-del {
+  color: #ff3333;
+  text-shadow: 0 0 4px rgba(255, 51, 51, 0.5);
+}
+
+.changes-none {
+  color: var(--text-muted);
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.status-badge.status-active {
+  color: #00ff00;
+  border-color: #00ff00;
+  background: rgba(0, 255, 0, 0.1);
+  box-shadow: 0 0 6px rgba(0, 255, 0, 0.2);
+}
+
+.status-badge.status-inactive {
+  color: #ff3333;
+  border-color: #ff3333;
+  background: rgba(255, 51, 51, 0.1);
+  box-shadow: 0 0 6px rgba(255, 51, 51, 0.2);
+}
+
+/* Commit info */
+.commit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.commit-time {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Actions column */
+.worktree-actions {
+  text-align: center;
+}
+
+.worktree-delete-btn {
+  padding: 4px 8px;
+  border: 1px solid var(--text-muted);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  opacity: 0.5;
+}
+
+.worktree-row:hover .worktree-delete-btn {
+  opacity: 1;
+}
+
+.worktree-delete-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  box-shadow: 0 0 8px rgba(255, 68, 0, 0.4);
+}
+
+/* Landing empty state */
+#landing-empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-empty-box {
+  text-align: center;
+  border: 1px solid var(--border);
+  padding: 40px 60px;
+  background: var(--bg-secondary);
+  box-shadow: 0 0 20px rgba(255, 149, 0, 0.2);
+}
+
+.landing-empty-box::before {
+  content: '╔══════════════════════════╗';
+  display: block;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  letter-spacing: 0;
+  font-size: 14px;
+}
+
+.landing-empty-box::after {
+  content: '╚══════════════════════════╝';
+  display: block;
+  color: var(--text-muted);
+  margin-top: 12px;
+  letter-spacing: 0;
+  font-size: 14px;
+}
+
+.landing-empty-box p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.landing-empty-hint {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-bottom: 20px;
+}
+
+#landing-empty-launch-btn {
+  padding: 12px 24px;
+  border: 1px solid var(--accent);
+  background: var(--bg-primary);
+  color: var(--accent);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 15px rgba(255, 149, 0, 0.3);
+  animation: pulse 2s infinite;
+}
+
+#landing-empty-launch-btn:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+  box-shadow: 0 0 25px rgba(255, 149, 0, 0.6);
+  transform: scale(1.05);
 }

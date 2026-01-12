@@ -5,6 +5,7 @@
 - No rounded corners, ever
 - Monospace everything
 - Dark, dense, glowing
+- Never use `>` or `>>` prefixes before text (no fake terminal prompts)
 
 ## UX
 - Information always visible - no hiding behind menus

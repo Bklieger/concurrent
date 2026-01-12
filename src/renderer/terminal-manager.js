@@ -454,6 +454,16 @@ class TerminalManager {
   }
 
   /**
+   * Update git status in grid view (placeholder for future implementation)
+   * @param {string} id - Terminal ID
+   * @param {Object} changes - Git status changes
+   */
+  updateGridStatus(id, changes) {
+    // Grid view doesn't currently show git status
+    // This is a stub to prevent errors
+  }
+
+  /**
    * Select a terminal in grid view
    * @param {string} id - Terminal ID
    */
