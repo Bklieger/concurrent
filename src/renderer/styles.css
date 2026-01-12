@@ -909,6 +909,7 @@ body::before {
   letter-spacing: 3px;
   text-transform: uppercase;
   margin: 0;
+  text-shadow: 0 0 10px rgba(255, 149, 0, 0.5);
 }
 
 
@@ -981,7 +982,7 @@ body::before {
 #worktree-table-wrapper {
   flex: 1;
   overflow: auto;
-  padding: 16px;
+  padding: 0;
 }
 
 .worktree-table {
@@ -998,7 +999,7 @@ body::before {
 }
 
 .worktree-table th {
-  padding: 12px 16px;
+  padding: 12px 20px;
   text-align: left;
   font-size: 10px;
   font-weight: 400;
@@ -1006,10 +1007,11 @@ body::before {
   letter-spacing: 2px;
   text-transform: uppercase;
   border-bottom: 1px solid var(--border-bright);
+  text-shadow: 0 0 6px rgba(255, 149, 0, 0.3);
 }
 
 .worktree-table td {
-  padding: 14px 16px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
@@ -1034,6 +1036,7 @@ body::before {
   font-weight: 400;
   letter-spacing: 1px;
   text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(255, 149, 0, 0.4);
 }
 
 .worktree-name-sub {
@@ -1047,6 +1050,7 @@ body::before {
   color: var(--accent);
   font-size: 11px;
   letter-spacing: 0.5px;
+  text-shadow: 0 0 6px rgba(255, 149, 0, 0.4);
 }
 
 /* Changes column */
@@ -1056,13 +1060,13 @@ body::before {
 
 .worktree-changes .status-add {
   color: #00ff00;
-  text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+  text-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
   margin-right: 6px;
 }
 
 .worktree-changes .status-del {
   color: #ff3333;
-  text-shadow: 0 0 4px rgba(255, 51, 51, 0.5);
+  text-shadow: 0 0 6px rgba(255, 51, 51, 0.6);
 }
 
 .changes-none {
@@ -1083,14 +1087,14 @@ body::before {
   color: #00ff00;
   border-color: #00ff00;
   background: rgba(0, 255, 0, 0.1);
-  box-shadow: 0 0 6px rgba(0, 255, 0, 0.2);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
 }
 
 .status-badge.status-inactive {
   color: #ff3333;
   border-color: #ff3333;
   background: rgba(255, 51, 51, 0.1);
-  box-shadow: 0 0 6px rgba(255, 51, 51, 0.2);
+  box-shadow: 0 0 8px rgba(255, 51, 51, 0.4);
 }
 
 /* Commit info */
