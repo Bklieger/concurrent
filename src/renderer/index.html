@@ -22,17 +22,20 @@
         </div>
       </div>
       <ul id="terminal-list"></ul>
+      <button id="launch-agent-btn" class="sidebar-launch-btn">
+        LAUNCH NEW AGENT
+      </button>
     </aside>
     <main id="terminal-container">
       <div id="empty-state">
-        <p>NO ACTIVE SESSIONS</p>
-        <button id="create-first-btn">INIT TERMINAL</button>
+        <p>NO ACTIVE AGENTS</p>
+        <button id="empty-state-launch-btn">[+] LAUNCH</button>
       </div>
     </main>
     <main id="grid-container" class="hidden">
       <div id="grid-empty-state">
-        <p>NO ACTIVE SESSIONS</p>
-        <button id="grid-create-btn">INIT TERMINAL</button>
+        <p>NO ACTIVE AGENTS</p>
+        <button id="grid-create-btn">[+] LAUNCH</button>
       </div>
     </main>
   </div>
@@ -42,6 +45,8 @@
   <script src="rename-utils.js"></script>
   <script src="sidebar.js"></script>
   <script src="terminal-manager.js"></script>
+  <script src="presets.js"></script>
+  <script src="launch-modal.js"></script>
   <script src="app.js"></script>
 </body>
 

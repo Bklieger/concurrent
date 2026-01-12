@@ -6,7 +6,7 @@ const { contextBridge, ipcRenderer } = require('electron');
  */
 contextBridge.exposeInMainWorld('terminalAPI', {
   // Create a new terminal session
-  create: () => ipcRenderer.invoke('terminal:create'),
+  create: (options) => ipcRenderer.invoke('terminal:create', options),
 
   // Write data to a terminal
   write: (id, data) => ipcRenderer.send('terminal:write', { id, data }),
@@ -30,5 +30,30 @@ contextBridge.exposeInMainWorld('terminalAPI', {
     ipcRenderer.on('terminal:exit', handler);
     return () => ipcRenderer.removeListener('terminal:exit', handler);
   },
+});
+
+/**
+ * Expose Git worktree management API
+ */
+contextBridge.exposeInMainWorld('gitAPI', {
+  // Ensure base repository exists
+  ensureBaseRepo: (owner, repo) =>
+    ipcRenderer.invoke('git:ensure-base-repo', { owner, repo }),
+
+  // Create a new worktree
+  createWorktree: (baseRepoPath, branchName) =>
+    ipcRenderer.invoke('git:create-worktree', { baseRepoPath, branchName }),
+
+  // List all worktrees
+  listWorktrees: (baseRepoPath) =>
+    ipcRenderer.invoke('git:list-worktrees', { baseRepoPath }),
+
+  // Remove a worktree
+  removeWorktree: (worktreePath) =>
+    ipcRenderer.invoke('git:remove-worktree', { worktreePath }),
+
+  // Get worktree git status
+  getWorktreeStatus: (worktreePath) =>
+    ipcRenderer.invoke('git:get-worktree-status', { worktreePath }),
 });
 

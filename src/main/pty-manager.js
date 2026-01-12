@@ -25,19 +25,31 @@ class PtyManager extends EventEmitter {
 
   /**
    * Create a new terminal instance
+   * @param {Object} options - Terminal options
+   * @param {string} options.cwd - Working directory (defaults to home directory)
+   * @param {string} options.command - Command to execute after shell starts
    * @returns {string} The terminal ID
    */
-  create() {
+  create(options = {}) {
     const id = `term-${++this.idCounter}`;
     const shell = this.getDefaultShell();
+    const { cwd = os.homedir(), command = null } = options;
 
     const ptyProcess = pty.spawn(shell, [], {
       name: 'xterm-256color',
       cols: 80,
       rows: 24,
-      cwd: os.homedir(),
+      cwd: cwd,
       env: process.env,
     });
+
+    // If a command is provided, execute it after shell starts
+    if (command) {
+      // Give the shell a moment to initialize, then send the command
+      setTimeout(() => {
+        ptyProcess.write(`${command}\r`);
+      }, 100);
+    }
 
     // Forward data from PTY to the event system
     ptyProcess.onData((data) => {

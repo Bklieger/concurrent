@@ -16,7 +16,6 @@ class Sidebar {
     // DOM elements
     this.listEl = document.getElementById('terminal-list');
     this.newBtn = document.getElementById('new-terminal-btn');
-    this.createFirstBtn = document.getElementById('create-first-btn');
 
     this.setupEventListeners();
   }
@@ -24,18 +23,25 @@ class Sidebar {
   /**
    * Add a terminal to the sidebar
    * @param {string} id - Terminal ID
+   * @param {string} customName - Optional custom name for the terminal
    * @returns {string} Display name for the terminal
    */
-  add(id) {
-    this.terminalCounter++;
-    const name = `TTY-${String(this.terminalCounter).padStart(2, '0')}`;
+  add(id, customName = null, worktreeInfo = null) {
+    const name = customName || (() => {
+      this.terminalCounter++;
+      return `AGNT-${String(this.terminalCounter).padStart(2, '0')}`;
+    })();
 
     const li = document.createElement('li');
     li.className = 'terminal-item';
     li.dataset.id = id;
     li.innerHTML = `
       <span class="terminal-item-status" data-status="idle"></span>
-      <span class="terminal-item-name">${name}</span>
+      <div class="terminal-item-content">
+        <span class="terminal-item-name">${name}</span>
+        ${worktreeInfo ? `<span class="terminal-item-worktree">${worktreeInfo.owner}/${worktreeInfo.repo}:${worktreeInfo.branch}</span>` : ''}
+        <div class="terminal-item-status-bar"></div>
+      </div>
       <button class="terminal-item-close" title="Close">[X]</button>
     `;
 
@@ -131,6 +137,42 @@ class Sidebar {
   }
 
   /**
+   * Update git status indicators for a terminal
+   * @param {string} id - Terminal ID
+   * @param {Object} changes - Git status changes { additions, modifications, deletions }
+   */
+  updateGitStatus(id, changes) {
+    const entry = this.terminals.get(id);
+    if (!entry) return;
+
+    const statusBar = entry.element.querySelector('.terminal-item-status-bar');
+    if (!statusBar) return;
+
+    statusBar.innerHTML = '';
+
+    if (changes.additions > 0) {
+      const span = document.createElement('span');
+      span.className = 'status-add';
+      span.textContent = `+${changes.additions}`;
+      statusBar.appendChild(span);
+    }
+
+    if (changes.modifications > 0) {
+      const span = document.createElement('span');
+      span.className = 'status-mod';
+      span.textContent = `~${changes.modifications}`;
+      statusBar.appendChild(span);
+    }
+
+    if (changes.deletions > 0) {
+      const span = document.createElement('span');
+      span.className = 'status-del';
+      span.textContent = `-${changes.deletions}`;
+      statusBar.appendChild(span);
+    }
+  }
+
+  /**
    * Start editing a terminal name
    * @param {string} id - Terminal ID
    */
@@ -198,10 +240,6 @@ class Sidebar {
    */
   setupEventListeners() {
     this.newBtn.addEventListener('click', () => {
-      this.onCreate();
-    });
-
-    this.createFirstBtn.addEventListener('click', () => {
       this.onCreate();
     });
 

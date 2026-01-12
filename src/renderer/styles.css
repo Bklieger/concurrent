@@ -21,13 +21,16 @@
 }
 
 /* === Reset & Base === */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   overflow: hidden;
 }
@@ -48,13 +51,11 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.15) 2px,
-    rgba(0, 0, 0, 0.15) 4px
-  );
+  background: repeating-linear-gradient(0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.15) 2px,
+      rgba(0, 0, 0, 0.15) 4px);
   pointer-events: none;
   z-index: 9999;
 }
@@ -193,6 +194,7 @@ body::before {
   from {
     box-shadow: 0 0 6px #00ff00, 0 0 10px #00ff00;
   }
+
   to {
     box-shadow: 0 0 10px #00ff00, 0 0 18px #00ff00;
   }
@@ -202,13 +204,13 @@ body::before {
   from {
     box-shadow: 0 0 4px #ff3333, 0 0 8px #ff3333;
   }
+
   to {
     box-shadow: 0 0 6px #ff3333, 0 0 12px #ff3333;
   }
 }
 
 .terminal-item-name {
-  flex: 1;
   font-size: 12px;
   color: var(--text-primary);
   white-space: nowrap;
@@ -231,6 +233,45 @@ body::before {
   text-transform: uppercase;
   letter-spacing: 1px;
   outline: none;
+}
+
+.terminal-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.terminal-item-worktree {
+  font-size: 9px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.5px;
+}
+
+.terminal-item-status-bar {
+  display: flex;
+  gap: 4px;
+  font-size: 9px;
+  margin-top: 2px;
+}
+
+.status-add {
+  color: #00ff00;
+  text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
+}
+
+.status-mod {
+  color: #ffaa00;
+  text-shadow: 0 0 4px rgba(255, 170, 0, 0.5);
+}
+
+.status-del {
+  color: #ff3333;
+  text-shadow: 0 0 4px rgba(255, 51, 51, 0.5);
 }
 
 .terminal-item-close {
@@ -307,24 +348,27 @@ body::before {
   transform: translate(-50%, -50%);
   text-align: center;
   border: 1px solid var(--border);
-  padding: 30px 40px;
+  padding: 40px 60px;
   background: var(--bg-secondary);
+  box-shadow: 0 0 20px rgba(255, 149, 0, 0.2);
 }
 
 #empty-state::before {
-  content: '╔══════════════════════════╗';
+  content: '╔════════════════╗';
   display: block;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   letter-spacing: 0;
+  font-size: 14px;
 }
 
 #empty-state::after {
-  content: '╚══════════════════════════╝';
+  content: '╚════════════════╝';
   display: block;
   color: var(--text-muted);
-  margin-top: 10px;
+  margin-top: 12px;
   letter-spacing: 0;
+  font-size: 14px;
 }
 
 #empty-state p {
@@ -336,36 +380,45 @@ body::before {
 }
 
 #empty-state p::before {
-  content: '// ';
+  content: '';
   color: var(--text-muted);
 }
 
-#create-first-btn {
-  padding: 8px 16px;
+#empty-state-launch-btn {
+  padding: 12px 24px;
   border: 1px solid var(--accent);
   border-radius: 0;
   background: var(--bg-primary);
   color: var(--accent);
   font-family: 'Share Tech Mono', monospace;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 15px rgba(255, 149, 0, 0.3);
+  animation: pulse 2s infinite;
 }
 
-#create-first-btn:hover {
-  background: var(--bg-hover);
-  box-shadow: 0 0 15px rgba(255, 149, 0, 0.3), inset 0 0 15px rgba(255, 149, 0, 0.1);
+#empty-state-launch-btn:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 25px rgba(255, 149, 0, 0.6);
+  transform: scale(1.05);
 }
 
-#create-first-btn::before {
-  content: '[ ';
-}
+@keyframes pulse {
 
-#create-first-btn::after {
-  content: ' ]';
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(255, 149, 0, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(255, 149, 0, 0.5);
+  }
 }
 
 /* === Scrollbar === */
@@ -405,23 +458,41 @@ body::before {
   border-radius: 0;
 }
 
-/* === Status bar effect at bottom of sidebar === */
-#sidebar::after {
-  content: 'SYS:READY';
+/* === Launch Agent button at bottom of sidebar === */
+.sidebar-launch-btn {
   display: block;
-  padding: 6px 10px;
-  font-size: 10px;
-  color: var(--text-muted);
-  border-top: 1px solid var(--border);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  width: 100%;
+  padding: 12px 10px;
+  border: none;
+  border-top: 1px solid var(--border-bright);
   background: var(--bg-secondary);
+  color: var(--accent);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  margin-top: auto;
+}
+
+.sidebar-launch-btn:hover {
+  background: var(--bg-hover);
+  box-shadow: 0 0 15px rgba(255, 149, 0, 0.3);
 }
 
 /* === Blinking cursor effect for active elements === */
 @keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .terminal-item.active .terminal-item-name::after {
@@ -550,8 +621,9 @@ body::before {
   justify-content: center;
   text-align: center;
   border: 1px solid var(--border);
-  padding: 30px 40px;
+  padding: 40px 60px;
   background: var(--bg-secondary);
+  box-shadow: 0 0 20px rgba(255, 149, 0, 0.2);
 }
 
 #grid-empty-state p {
@@ -563,19 +635,254 @@ body::before {
 }
 
 #grid-create-btn {
-  padding: 8px 16px;
+  padding: 12px 24px;
   border: 1px solid var(--accent);
   background: var(--bg-primary);
   color: var(--accent);
   font-family: 'Share Tech Mono', monospace;
-  font-size: 12px;
+  font-size: 14px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 15px rgba(255, 149, 0, 0.3);
+  animation: pulse 2s infinite;
 }
 
 #grid-create-btn:hover {
-  background: var(--bg-hover);
-  box-shadow: 0 0 15px rgba(255, 149, 0, 0.3);
+  background: var(--accent);
+  color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 25px rgba(255, 149, 0, 0.6);
+  transform: scale(1.05);
+}
+
+/* === Launch Modal === */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 10, 8, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 0 40px rgba(255, 149, 0, 0.5);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-bright);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-primary);
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.modal-close {
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  transition: all 0.1s ease;
+}
+
+.modal-close:hover {
+  background: var(--danger);
+  color: var(--bg-primary);
+  box-shadow: 0 0 10px var(--danger);
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(255, 149, 0, 0.3);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  border-radius: 2px;
+  transition: all 0.1s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(255, 149, 0, 0.4);
+  transform: scale(1.01);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-group select {
+  cursor: pointer;
+}
+
+.modal-error {
+  background: rgba(255, 68, 0, 0.15);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 12px;
+  margin-top: 16px;
+  border-radius: 2px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  animation: errorShake 0.3s ease;
+}
+
+@keyframes errorShake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.modal-error.hidden {
+  display: none;
+}
+
+.modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: var(--bg-primary);
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 2px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all 0.1s ease;
+  border: 1px solid;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-primary);
+}
+
+.btn-primary:hover {
+  background: var(--accent-glow);
+  border-color: var(--accent-glow);
+  box-shadow: 0 0 15px rgba(255, 149, 0, 0.5);
+}
+
+.btn-primary:active {
+  background: var(--accent-dim);
+  border-color: var(--accent-dim);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 149, 0, 0.3);
+}
+
+.btn-secondary:active {
+  border-color: var(--text-secondary);
 }

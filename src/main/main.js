@@ -1,11 +1,13 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const PtyManager = require('./pty-manager');
+const GitManager = require('./git-manager');
 
 class Application {
   constructor() {
     this.mainWindow = null;
     this.ptyManager = new PtyManager();
+    this.gitManager = new GitManager();
   }
 
   createWindow() {
@@ -24,6 +26,9 @@ class Application {
 
     this.mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 
+    // Open dev tools in development
+    this.mainWindow.webContents.openDevTools();
+
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
       this.ptyManager.disposeAll();
@@ -32,8 +37,8 @@ class Application {
 
   setupIpcHandlers() {
     // Create a new terminal session
-    ipcMain.handle('terminal:create', () => {
-      const id = this.ptyManager.create();
+    ipcMain.handle('terminal:create', (event, options) => {
+      const id = this.ptyManager.create(options);
       return id;
     });
 
@@ -64,6 +69,52 @@ class Application {
     this.ptyManager.on('exit', (id, exitCode) => {
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
         this.mainWindow.webContents.send('terminal:exit', { id, exitCode });
+      }
+    });
+
+    // Git worktree management
+    ipcMain.handle('git:ensure-base-repo', async (event, { owner, repo }) => {
+      try {
+        const path = await this.gitManager.ensureBaseRepo(owner, repo);
+        return { success: true, path };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle('git:create-worktree', async (event, { baseRepoPath, branchName }) => {
+      try {
+        const path = await this.gitManager.createWorktree(baseRepoPath, branchName);
+        return { success: true, path };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle('git:list-worktrees', async (event, { baseRepoPath }) => {
+      try {
+        const worktrees = await this.gitManager.listWorktrees(baseRepoPath);
+        return { success: true, worktrees };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle('git:remove-worktree', async (event, { worktreePath }) => {
+      try {
+        await this.gitManager.removeWorktree(worktreePath);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    });
+
+    ipcMain.handle('git:get-worktree-status', async (event, { worktreePath }) => {
+      try {
+        const changes = await this.gitManager.getWorktreeStatus(worktreePath);
+        return { success: true, changes };
+      } catch (error) {
+        return { success: false, error: error.message };
       }
     });
   }

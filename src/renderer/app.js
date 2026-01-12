@@ -1,7 +1,7 @@
 /**
  * Main application controller
  * Coordinates between TerminalManager and Sidebar
- * Depends on: TerminalManager, Sidebar (loaded via script tags)
+ * Depends on: TerminalManager, Sidebar, PresetManager, LaunchModal (loaded via script tags)
  */
 class App {
   constructor() {
@@ -14,17 +14,25 @@ class App {
       onRename: (id, newName) => this.renameTerminal(id, newName),
     });
 
+    this.presetManager = new PresetManager();
+    this.launchModal = new LaunchModal(
+      (formData) => this.handleLaunch(formData),
+      this.presetManager
+    );
+
     this.viewToggleBtn = document.getElementById('view-toggle-btn');
     this.gridCreateBtn = document.getElementById('grid-create-btn');
+    this.launchAgentBtn = document.getElementById('launch-agent-btn');
 
     this.setupExitHandler();
     this.setupActivityHandler();
     this.setupRenameHandler();
     this.setupViewToggle();
     this.setupGridEvents();
+    this.setupLaunchButton();
+    this.setupEmptyStateLaunch();
 
-    // Create first terminal on startup
-    this.createTerminal();
+    // Don't create terminal on startup - let user launch agents instead
   }
 
   /**
@@ -171,6 +179,170 @@ class App {
         this.selectTerminal(id);
       }
     });
+  }
+
+  /**
+   * Setup launch agent button
+   */
+  setupLaunchButton() {
+    this.launchAgentBtn.addEventListener('click', () => {
+      this.launchModal.show();
+    });
+
+    // Keyboard shortcut: Ctrl/Cmd + L for launch modal
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+        e.preventDefault();
+        this.launchModal.show();
+      }
+    });
+  }
+
+  /**
+   * Setup empty state launch handlers
+   */
+  setupEmptyStateLaunch() {
+    const emptyLaunchBtn = document.getElementById('empty-state-launch-btn');
+    if (emptyLaunchBtn) {
+      emptyLaunchBtn.addEventListener('click', () => {
+        this.launchModal.show();
+      });
+    }
+
+    const gridEmptyBtn = document.getElementById('grid-create-btn');
+    if (gridEmptyBtn) {
+      gridEmptyBtn.addEventListener('click', () => {
+        this.launchModal.show();
+      });
+    }
+
+    // Also update the "create first" button if it exists
+    const createFirstBtn = document.getElementById('create-first-btn');
+    if (createFirstBtn) {
+      createFirstBtn.addEventListener('click', () => {
+        this.launchModal.show();
+      });
+    }
+  }
+
+  /**
+   * Handle launch agent form submission
+   * @param {Object} formData - Form data from launch modal
+   */
+  async handleLaunch({ owner, repo, branch, prompt, presetId }) {
+    try {
+      // 1. Ensure base repo exists
+      const baseResult = await window.gitAPI.ensureBaseRepo(owner, repo);
+      if (!baseResult.success) {
+        this.launchModal.showError(baseResult.error);
+        return;
+      }
+
+      // 2. Create worktree
+      const worktreeResult = await window.gitAPI.createWorktree(
+        baseResult.path,
+        branch
+      );
+      if (!worktreeResult.success) {
+        this.launchModal.showError(worktreeResult.error);
+        return;
+      }
+
+      // 3. Get command from preset
+      const command = this.presetManager.getCommandForPreset(presetId, prompt);
+
+      // 4. Create terminal with custom cwd and command
+      const terminalId = await window.terminalAPI.create({
+        cwd: worktreeResult.path,
+        command: command,
+      });
+
+      // 5. Store worktree metadata
+      const worktreeInfo = {
+        owner,
+        repo,
+        branch,
+        path: worktreeResult.path
+      };
+
+      // 6. Add to UI with custom name and worktree info
+      const terminalName = `${owner}/${repo}:${branch}`;
+      this.terminalManager.create(terminalId);
+      this.sidebar.add(terminalId, terminalName, worktreeInfo);
+      this.selectTerminal(terminalId);
+
+      // 7. Start status polling for this worktree
+      this.startWorktreeStatusPolling(terminalId, worktreeResult.path);
+
+      // 8. Hide modal
+      this.launchModal.hide();
+    } catch (error) {
+      console.error('Failed to launch agent:', error);
+      this.launchModal.showError(
+        error.message || 'An unexpected error occurred'
+      );
+    }
+  }
+
+  /**
+   * Start polling git status for a worktree
+   * @param {string} terminalId - Terminal ID
+   * @param {string} worktreePath - Path to worktree
+   */
+  async startWorktreeStatusPolling(terminalId, worktreePath) {
+    if (!this.statusPollers) {
+      this.statusPollers = new Map();
+    }
+
+    const poll = async () => {
+      try {
+        const status = await window.gitAPI.getWorktreeStatus(worktreePath);
+        if (status.success) {
+          this.sidebar.updateGitStatus(terminalId, status.changes);
+          this.terminalManager.updateGridStatus(terminalId, status.changes);
+        }
+      } catch (error) {
+        console.error('Failed to poll git status:', error);
+      }
+    };
+
+    // Poll every 5 seconds
+    const intervalId = setInterval(poll, 5000);
+    poll(); // Initial poll
+
+    // Store interval ID to clear on terminal close
+    this.statusPollers.set(terminalId, intervalId);
+  }
+
+  /**
+   * Close a terminal
+   * @param {string} id - Terminal ID
+   */
+  async closeTerminal(id) {
+    try {
+      // Clear status poller if exists
+      if (this.statusPollers && this.statusPollers.has(id)) {
+        clearInterval(this.statusPollers.get(id));
+        this.statusPollers.delete(id);
+      }
+
+      // Find next terminal to select before closing
+      const nextId = this.sidebar.getNextId(id);
+
+      // Close PTY in main process
+      await window.terminalAPI.close(id);
+
+      // Clean up UI
+      this.sidebar.remove(id);
+      this.terminalManager.close(id);
+
+      // Select next terminal if available
+      if (nextId) {
+        this.selectTerminal(nextId);
+      }
+    } catch (err) {
+      console.error('Failed to close terminal:', err);
+    }
   }
 }
 
